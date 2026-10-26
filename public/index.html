@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="A local, full-stack HR management demonstration for employees, attendance, leave, payroll and reports.">
+  <title>Apex People Operations</title>
+
+  <!-- Local UI assets keep the college demo fully functional offline. -->
+  <link href="/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/vendor/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+  
+  <!-- Custom Corporate CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">Skip to main content</a>
+
+<div class="d-flex">
+  <!-- ================= SIDEBAR ================= -->
+  <aside id="sidebar" class="d-flex flex-column flex-shrink-0">
+    <!-- Brand -->
+    <div class="brand-wrapper d-flex align-items-center">
+      <div class="brand-icon me-3">
+        <i class="bi bi-buildings"></i>
+      </div>
+      <div>
+        <h6 class="brand-name">Apex People</h6>
+        <span class="brand-subtitle">People operations</span>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="sidebar-heading">MAIN MENU</div>
+    <ul class="nav flex-column mb-auto">
+      <li class="nav-item nav-admin-hr">
+        <a href="javascript:void(0)" id="nav-dashboard" class="nav-link-custom active" onclick="App.navigateTo('dashboard')">
+          <i class="bi bi-grid-1x2"></i> Dashboard
+        </a>
+      </li>
+      <li class="nav-item nav-admin-hr">
+        <a href="javascript:void(0)" id="nav-employees" class="nav-link-custom" onclick="App.navigateTo('employees')">
+          <i class="bi bi-people"></i> Employees
+        </a>
+      </li>
+      <li class="nav-item nav-admin-hr">
+        <a href="javascript:void(0)" id="nav-departments" class="nav-link-custom" onclick="App.navigateTo('departments')">
+          <i class="bi bi-diagram-3"></i> Departments
+        </a>
+      </li>
+      <li class="nav-item nav-admin-hr">
+        <a href="javascript:void(0)" id="nav-attendance" class="nav-link-custom" onclick="App.navigateTo('attendance')">
+          <i class="bi bi-calendar-check"></i> Attendance
+        </a>
+      </li>
+      <li class="nav-item nav-admin-hr">
+        <a href="javascript:void(0)" id="nav-leaves" class="nav-link-custom" onclick="App.navigateTo('leaves')">
+          <i class="bi bi-calendar-range"></i> Leave Requests
+        </a>
+      </li>
+      <li class="nav-item nav-admin-hr">
+        <a href="javascript:void(0)" id="nav-payroll" class="nav-link-custom" onclick="App.navigateTo('payroll')">
+          <i class="bi bi-cash-stack"></i> Payroll & Payslips
+        </a>
+      </li>
+      <li class="nav-item nav-admin-hr">
+        <a href="javascript:void(0)" id="nav-reports" class="nav-link-custom" onclick="App.navigateTo('reports')">
+          <i class="bi bi-file-earmark-bar-graph"></i> Reports & Export
+        </a>
+      </li>
+
+      <div class="sidebar-heading mt-2">SELF-SERVICE</div>
+      <li class="nav-item nav-employee-only">
+        <a href="javascript:void(0)" id="nav-selfservice" class="nav-link-custom" onclick="App.navigateTo('selfservice')">
+          <i class="bi bi-person-workspace"></i> My Portal
+        </a>
+      </li>
+    </ul>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-demo-panel">
+      <div class="d-flex align-items-center justify-content-between gap-2">
+        <div class="small fw-semibold text-dark">Demo workspace</div>
+        <span class="demo-indicator"><span></span> Demo mode</span>
+      </div>
+      <div class="text-muted demo-copy">Fictional employee records</div>
+      <div class="mt-2">
+        <button class="btn btn-sm btn-outline-primary w-100" onclick="App.openRoleSwitcher()">
+          <i class="bi bi-arrow-left-right me-1"></i> Switch Demo Role
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN WRAPPER ================= -->
+  <div class="d-flex flex-column flex-grow-1" style="min-width: 0;">
+    
+    <!-- Top Navigation Bar -->
+    <nav id="topbar" class="d-flex align-items-center justify-content-between">
+      <div class="d-flex align-items-center gap-3">
+        <button class="btn btn-sm btn-light border d-lg-none" aria-label="Open navigation" onclick="document.getElementById('sidebar').classList.toggle('show')">
+          <i class="bi bi-list"></i>
+        </button>
+        <div id="topbar-clock" class="text-muted small fw-medium">
+          <span class="skeleton-line">Loading workspace…</span>
+        </div>
+      </div>
+
+      <div class="d-flex align-items-center gap-3">
+        <!-- Demo Role Badge Indicator -->
+        <div id="current-role-badge" class="role-badge-pill role-admin" aria-live="polite">
+          <i class="bi bi-shield-lock-fill"></i> System Admin
+        </div>
+
+        <!-- Role Switcher Button -->
+        <button class="btn btn-sm btn-light border" onclick="App.openRoleSwitcher()" title="Change Role for Demo">
+          <i class="bi bi-sliders me-1"></i> Demo Role
+        </button>
+
+        <!-- Current User Avatar -->
+        <div class="d-flex align-items-center gap-2 border-start ps-3">
+          <div class="avatar-circle bg-primary text-white fw-bold" style="width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div class="d-none d-sm-block text-start">
+            <div id="current-user-name" class="fw-semibold text-dark small" style="line-height: 1.2;">Admin User</div>
+            <div class="text-muted user-session-label">Local demo session</div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Content Body -->
+    <main id="main-content">
+      
+      <!-- ================= 1. VIEW: DASHBOARD ================= -->
+      <section id="view-dashboard" class="view-panel">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Executive Dashboard</h4>
+            <div class="text-muted small">Real-time overview of workforce, daily attendance, and financial payroll</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary btn-sm" onclick="Dashboard.init()">
+              <i class="bi bi-arrow-clockwise me-1"></i> Refresh Data
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="App.navigateTo('employees')">
+              <i class="bi bi-people me-1"></i> Manage Staff
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="row g-3 mb-4">
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="stat-label">TOTAL EMPLOYEES</div>
+                  <div id="stat-total-emp" class="stat-value">20</div>
+                  <div id="stat-active-emp" class="text-success small fw-semibold mt-1">20 Active</div>
+                </div>
+                <div class="stat-icon stat-icon-blue">
+                  <i class="bi bi-people-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="stat-label">TODAY'S ATTENDANCE</div>
+                  <div id="stat-present-today" class="stat-value text-success">17</div>
+                  <div id="stat-absent-today" class="text-muted small mt-1">2 Absent, 1 Half-Day</div>
+                </div>
+                <div class="stat-icon stat-icon-green">
+                  <i class="bi bi-calendar-check-fill"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="stat-label">PENDING LEAVES</div>
+                  <div id="stat-pending-leaves" class="stat-value text-warning">4</div>
+                  <div class="text-muted small mt-1">Awaiting approval</div>
+                </div>
+                <div class="stat-icon stat-icon-amber">
+                  <i class="bi bi-clock-history"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-sm-6 col-xl-3">
+            <div class="stat-card">
+              <div class="d-flex align-items-center justify-content-between">
+                <div>
+                  <div class="stat-label">MONTHLY PAYROLL</div>
+                  <div id="stat-monthly-payroll" class="stat-value text-primary">₹14.8L</div>
+                  <div id="stat-payroll-count" class="text-muted small mt-1">20 Active employees</div>
+                </div>
+                <div class="stat-icon stat-icon-purple">
+                  <i class="bi bi-currency-rupee"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Interactive Charts & Feed -->
+        <div class="row g-3 mb-4">
+          <!-- Department Distribution -->
+          <div class="col-lg-6">
+            <div class="hrms-card h-100">
+              <div class="hrms-card-header">
+                <h6 class="hrms-card-title"><i class="bi bi-pie-chart text-primary"></i> Employees by Department</h6>
+              </div>
+              <div class="hrms-card-body" style="height: 280px; position: relative;">
+                <canvas id="chart-departments"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Attendance Breakdown -->
+          <div class="col-lg-6">
+            <div class="hrms-card h-100">
+              <div class="hrms-card-header">
+                <h6 class="hrms-card-title"><i class="bi bi-bar-chart text-success"></i> Today's Attendance Distribution</h6>
+              </div>
+              <div class="hrms-card-body" style="height: 280px; position: relative;">
+                <canvas id="chart-attendance"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Department Salary Spending -->
+          <div class="col-lg-7">
+            <div class="hrms-card h-100">
+              <div class="hrms-card-header">
+                <h6 class="hrms-card-title"><i class="bi bi-wallet2 text-primary"></i> Department Payroll Spending (₹)</h6>
+              </div>
+              <div class="hrms-card-body" style="height: 280px; position: relative;">
+                <canvas id="chart-dept-salary"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity Stream -->
+          <div class="col-lg-5">
+            <div class="hrms-card h-100">
+              <div class="hrms-card-header">
+                <h6 class="hrms-card-title"><i class="bi bi-activity text-danger"></i> Recent System Activity</h6>
+              </div>
+              <div class="hrms-card-body overflow-auto" style="max-height: 280px;">
+                <div id="dashboard-activities-list">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Monthly Payroll Trends -->
+          <div class="col-12">
+            <div class="hrms-card mb-0">
+              <div class="hrms-card-header">
+                <h6 class="hrms-card-title"><i class="bi bi-graph-up-arrow text-primary"></i> Monthly Payroll Trends (Gross vs Net Disbursed)</h6>
+              </div>
+              <div class="hrms-card-body" style="height: 260px; position: relative;">
+                <canvas id="chart-payroll-trend"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 2. VIEW: EMPLOYEES ================= -->
+      <section id="view-employees" class="view-panel d-none">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Employee Directory</h4>
+            <div class="text-muted small">Manage workforce profiles, salary structures, and department assignments</div>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="Employees.openAddModal()">
+              <i class="bi bi-person-plus me-1"></i> Add New Employee
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Controls -->
+        <div class="hrms-card p-3 mb-4">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-5">
+              <div class="input-group">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="search" id="emp-search-input" class="form-control border-start-0" placeholder="Search name, code, role, or email" oninput="Employees.scheduleLoad()" aria-label="Search employees">
+              </div>
+            </div>
+            <div class="col-md-3">
+              <select id="emp-filter-dept" class="form-select" onchange="Employees.loadEmployees()">
+                <option value="all">All Departments</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <select id="emp-filter-status" class="form-select" onchange="Employees.loadEmployees()">
+                <option value="all">All Statuses</option>
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Terminated">Terminated</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('emp-search-input').value=''; document.getElementById('emp-filter-dept').value='all'; document.getElementById('emp-filter-status').value='all'; Employees.loadEmployees();">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Employees Table -->
+        <div class="hrms-card">
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>EMP Code</th>
+                  <th>Employee Info</th>
+                  <th>Department</th>
+                  <th>Designation</th>
+                  <th>Monthly Salary</th>
+                  <th>Status</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="employees-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 3. VIEW: DEPARTMENTS ================= -->
+      <section id="view-departments" class="view-panel d-none">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Department Management</h4>
+            <div class="text-muted small">Organize corporate divisions, assign leadership, and track departmental budgets</div>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="Departments.openAddModal()">
+              <i class="bi bi-plus-lg me-1"></i> Add Department
+            </button>
+          </div>
+        </div>
+
+        <!-- Department Cards -->
+        <div id="departments-cards-container" class="row">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- Department Table -->
+        <div class="hrms-card mt-2">
+          <div class="hrms-card-header">
+            <h6 class="hrms-card-title"><i class="bi bi-table text-primary"></i> All Department Records</h6>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Department Name</th>
+                  <th>Head of Department</th>
+                  <th>Team Size</th>
+                  <th>Annual Budget</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="departments-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 4. VIEW: ATTENDANCE ================= -->
+      <section id="view-attendance" class="view-panel d-none">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Attendance Management</h4>
+            <div class="text-muted small">Daily employee clock-in records, working hours, and real-time absence tracking</div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <div class="input-group">
+              <span class="input-group-text bg-light"><i class="bi bi-calendar3"></i></span>
+              <input type="date" id="att-date-picker" class="form-control">
+            </div>
+            <button class="btn btn-primary text-nowrap" onclick="Attendance.openDetailModal('', 'Present', '09:00 AM', '', '')">
+              <i class="bi bi-plus-circle me-1"></i> Mark Entry
+            </button>
+          </div>
+        </div>
+
+        <!-- Attendance Status Summary Badges -->
+        <div class="row g-2 mb-4">
+          <div class="col">
+            <div class="p-3 bg-white border rounded text-center">
+              <div class="text-muted small fw-semibold">TOTAL ACTIVE</div>
+              <div id="att-summary-total" class="fs-4 fw-bold text-dark">0</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="p-3 bg-white border rounded text-center">
+              <div class="text-success small fw-semibold">PRESENT</div>
+              <div id="att-summary-present" class="fs-4 fw-bold text-success">0</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="p-3 bg-white border rounded text-center">
+              <div class="text-danger small fw-semibold">ABSENT</div>
+              <div id="att-summary-absent" class="fs-4 fw-bold text-danger">0</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="p-3 bg-white border rounded text-center">
+              <div class="text-warning small fw-semibold">LATE</div>
+              <div id="att-summary-late" class="fs-4 fw-bold text-warning">0</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="p-3 bg-white border rounded text-center">
+              <div class="text-info small fw-semibold">HALF DAY</div>
+              <div id="att-summary-halfday" class="fs-4 fw-bold text-info">0</div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="p-3 bg-white border rounded text-center">
+              <div class="text-secondary small fw-semibold">UNMARKED</div>
+              <div id="att-summary-notmarked" class="fs-4 fw-bold text-secondary">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="hrms-card">
+          <div class="hrms-card-header d-flex justify-content-between align-items-center">
+            <h6 class="hrms-card-title"><i class="bi bi-list-check text-primary"></i> Daily Roll Call</h6>
+            <div class="text-muted small">Click any quick status button to instantly record attendance</div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Employee</th>
+                  <th>Department</th>
+                  <th>Clock In</th>
+                  <th>Clock Out</th>
+                  <th>Status</th>
+                  <th class="text-end">Quick Actions</th>
+                </tr>
+              </thead>
+              <tbody id="attendance-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 5. VIEW: LEAVES ================= -->
+      <section id="view-leaves" class="view-panel d-none">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Leave Requests & Approvals</h4>
+            <div class="text-muted small">Review vacation, medical, and personal leave requests with approval workflow</div>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="Leaves.openApplyModal()">
+              <i class="bi bi-plus-lg me-1"></i> Apply for Leave
+            </button>
+          </div>
+        </div>
+
+        <!-- Leave Filters -->
+        <div class="hrms-card p-3 mb-4">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+              <label class="form-label small text-muted mb-1">Filter by Status</label>
+              <select id="leave-filter-status" class="form-select" onchange="Leaves.loadLeaves()">
+                <option value="all">All Statuses</option>
+                <option value="Pending">Pending Review</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted mb-1">Filter by Leave Type</label>
+              <select id="leave-filter-type" class="form-select" onchange="Leaves.loadLeaves()">
+                <option value="all">All Types</option>
+                <option value="Sick Leave">Sick Leave</option>
+                <option value="Casual Leave">Casual Leave</option>
+                <option value="Annual Leave">Annual Leave</option>
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('leave-filter-status').value='all'; document.getElementById('leave-filter-type').value='all'; Leaves.loadLeaves();">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leaves Table -->
+        <div class="hrms-card">
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Employee</th>
+                  <th>Type</th>
+                  <th>Duration</th>
+                  <th>Reason</th>
+                  <th>Applied On</th>
+                  <th>Status</th>
+                  <th class="text-end">HR Action</th>
+                </tr>
+              </thead>
+              <tbody id="leaves-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 6. VIEW: PAYROLL ================= -->
+      <section id="view-payroll" class="view-panel d-none">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Payroll & Compensation</h4>
+            <div class="text-muted small">Process automated monthly salaries, tax & PF deductions, and generate printable payslips</div>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="Payroll.openGenerateModal()">
+              <i class="bi bi-gear-wide-connected me-1"></i> Run Monthly Payroll
+            </button>
+          </div>
+        </div>
+
+        <!-- Payroll Metrics -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <div class="p-3 bg-white border rounded">
+              <div class="text-muted small fw-semibold">TOTAL GROSS PAY</div>
+              <div id="payroll-stat-gross" class="fs-4 fw-bold text-dark">₹0</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-white border rounded">
+              <div class="text-muted small fw-semibold">TOTAL NET DISBURSED</div>
+              <div id="payroll-stat-net" class="fs-4 fw-bold text-primary">₹0</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-white border rounded">
+              <div class="text-success small fw-semibold">PAID AMOUNT</div>
+              <div id="payroll-stat-paid" class="fs-4 fw-bold text-success">₹0</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-white border rounded">
+              <div class="text-warning small fw-semibold">PENDING DISBURSEMENT</div>
+              <div id="payroll-stat-pending" class="fs-4 fw-bold text-warning">₹0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payroll Filter -->
+        <div class="hrms-card p-3 mb-4">
+          <div class="row g-2 align-items-center">
+            <div class="col-md-4">
+              <label class="form-label small text-muted mb-1">Month / Year</label>
+              <select id="payroll-filter-month" class="form-select" onchange="Payroll.loadPayrollRecords()">
+                <option value="all">All Pay Periods</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small text-muted mb-1">Payment Status</label>
+              <select id="payroll-filter-status" class="form-select" onchange="Payroll.loadPayrollRecords()">
+                <option value="all">All Statuses</option>
+                <option value="Paid">Paid</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <button class="btn btn-outline-secondary w-100" onclick="document.getElementById('payroll-filter-month').value='all'; document.getElementById('payroll-filter-status').value='all'; Payroll.loadPayrollRecords();">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payroll Records Table -->
+        <div class="hrms-card">
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Employee</th>
+                  <th>Month</th>
+                  <th>Basic Salary</th>
+                  <th>Gross Salary</th>
+                  <th>Deductions</th>
+                  <th>Net Disbursed</th>
+                  <th>Status</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="payroll-table-body">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 7. VIEW: REPORTS ================= -->
+      <section id="view-reports" class="view-panel d-none">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Reports & Analytics Export</h4>
+            <div class="text-muted small">Download institutional and audit reports in standardized CSV format</div>
+          </div>
+          <div>
+            <button class="btn btn-success" onclick="Reports.exportCurrentCSV()">
+              <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export to CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Report Tabs -->
+        <ul class="nav nav-pills mb-3 border-bottom pb-2">
+          <li class="nav-item">
+            <button id="report-tab-employees" class="nav-link report-tab-btn active me-2" onclick="Reports.switchTab('employees')">
+              <i class="bi bi-people me-1"></i> Employee Master Report
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="report-tab-attendance" class="nav-link report-tab-btn me-2" onclick="Reports.switchTab('attendance')">
+              <i class="bi bi-calendar-check me-1"></i> Attendance Log Report
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="report-tab-leaves" class="nav-link report-tab-btn me-2" onclick="Reports.switchTab('leaves')">
+              <i class="bi bi-calendar-range me-1"></i> Leave Applications Report
+            </button>
+          </li>
+          <li class="nav-item">
+            <button id="report-tab-payroll" class="nav-link report-tab-btn" onclick="Reports.switchTab('payroll')">
+              <i class="bi bi-cash-stack me-1"></i> Payroll Register Report
+            </button>
+          </li>
+        </ul>
+
+        <!-- Report Panel: Employees -->
+        <div id="report-panel-employees" class="report-panel hrms-card">
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Full Name</th>
+                  <th>Department</th>
+                  <th>Designation</th>
+                  <th>Basic Salary</th>
+                  <th>Gross Salary</th>
+                </tr>
+              </thead>
+              <tbody id="report-emp-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Report Panel: Attendance -->
+        <div id="report-panel-attendance" class="report-panel hrms-card d-none">
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Code</th>
+                  <th>Full Name</th>
+                  <th>Department</th>
+                  <th>Clock In</th>
+                  <th>Clock Out</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="report-att-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Report Panel: Leaves -->
+        <div id="report-panel-leaves" class="report-panel hrms-card d-none">
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>Request ID</th>
+                  <th>Employee</th>
+                  <th>Department</th>
+                  <th>Leave Type</th>
+                  <th>Duration</th>
+                  <th>Status</th>
+                  <th>Reviewed By</th>
+                </tr>
+              </thead>
+              <tbody id="report-leave-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Report Panel: Payroll -->
+        <div id="report-panel-payroll" class="report-panel hrms-card d-none">
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Code</th>
+                  <th>Employee</th>
+                  <th>Department</th>
+                  <th>Basic Salary</th>
+                  <th>Gross Salary</th>
+                  <th>Deductions</th>
+                  <th>Net Disbursed</th>
+                </tr>
+              </thead>
+              <tbody id="report-pay-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= 8. VIEW: EMPLOYEE SELF-SERVICE ================= -->
+      <section id="view-selfservice" class="view-panel d-none">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+          <div>
+            <h4 class="fw-bold text-dark mb-1">Employee Self-Service Portal</h4>
+            <div class="text-muted small">Personal workspace to check in, submit leave requests, track approvals, and view payslips</div>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary btn-sm" onclick="App.openRoleSwitcher()">
+              <i class="bi bi-person-bounding-box me-1"></i> Switch Employee Account
+            </button>
+            <button class="btn btn-success btn-sm" onclick="SelfService.clockInToday()">
+              <i class="bi bi-fingerprint me-1"></i> Clock In for Today
+            </button>
+          </div>
+        </div>
+
+        <!-- Profile & Clock-in Banner -->
+        <div class="hrms-card p-4 mb-4" style="background: linear-gradient(135deg, #ffffff 0%, #f0f7ff 100%);">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center gap-3">
+                <div class="avatar-circle bg-primary text-white fw-bold fs-4" style="width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                  <i class="bi bi-person-fill"></i>
+                </div>
+                <div>
+                  <h4 id="self-emp-name" class="fw-bold text-dark mb-1">Loading...</h4>
+                  <div class="text-muted">
+                    <span id="self-emp-code" class="badge bg-primary me-2">EMP...</span>
+                    <span id="self-emp-desig" class="fw-semibold">...</span> • 
+                    <span id="self-emp-dept">...</span>
+                  </div>
+                </div>
+              </div>
+              <div class="row g-2 mt-3 pt-3 border-top small text-muted">
+                <div class="col-sm-4"><i class="bi bi-envelope me-1"></i><span id="self-emp-email">...</span></div>
+                <div class="col-sm-4"><i class="bi bi-telephone me-1"></i><span id="self-emp-phone">...</span></div>
+                <div class="col-sm-4"><i class="bi bi-calendar-event me-1"></i>Joined: <span id="self-emp-joining">...</span></div>
+              </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+              <div class="p-3 bg-white border rounded shadow-sm text-center">
+                <div class="small text-muted mb-1">Today's Quick Biometric</div>
+                <button class="btn btn-success w-100 py-2" onclick="SelfService.clockInToday()">
+                  <i class="bi bi-check-circle-fill me-1"></i> Mark Daily Attendance
+                </button>
+                <div class="text-muted small mt-1" style="font-size: 0.72rem;">Records current timestamp</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leave Balance Quotas -->
+        <div class="row g-3 mb-4">
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted small fw-semibold">SICK LEAVE BALANCE</span>
+                <span class="badge bg-danger">Medical</span>
+              </div>
+              <div id="self-bal-sick" class="fs-4 fw-bold text-dark">-- / -- Days</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted small fw-semibold">CASUAL LEAVE BALANCE</span>
+                <span class="badge bg-primary">Personal</span>
+              </div>
+              <div id="self-bal-casual" class="fs-4 fw-bold text-dark">-- / -- Days</div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="p-3 bg-white border rounded">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="text-muted small fw-semibold">ANNUAL LEAVE BALANCE</span>
+                <span class="badge bg-success">Vacation</span>
+              </div>
+              <div id="self-bal-annual" class="fs-4 fw-bold text-dark">-- / -- Days</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Column Section: Leaves & Attendance -->
+        <div class="row g-3 mb-4">
+          <!-- My Leave Requests -->
+          <div class="col-lg-7">
+            <div class="hrms-card h-100">
+              <div class="hrms-card-header d-flex justify-content-between align-items-center">
+                <h6 class="hrms-card-title"><i class="bi bi-calendar-range text-primary"></i> My Leave Applications</h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="Leaves.openApplyModal()">
+                  <i class="bi bi-plus-lg me-1"></i> Apply Leave
+                </button>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hrms align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>Dates</th>
+                      <th>Days</th>
+                      <th>Status</th>
+                      <th>Remarks</th>
+                    </tr>
+                  </thead>
+                  <tbody id="self-leaves-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- My Recent Attendance -->
+          <div class="col-lg-5">
+            <div class="hrms-card h-100">
+              <div class="hrms-card-header">
+                <h6 class="hrms-card-title"><i class="bi bi-clock-history text-success"></i> My Recent Attendance</h6>
+              </div>
+              <div class="table-responsive">
+                <table class="table table-hrms align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>In</th>
+                      <th>Out</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="self-att-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Payslips -->
+        <div class="hrms-card">
+          <div class="hrms-card-header">
+            <h6 class="hrms-card-title"><i class="bi bi-file-earmark-text text-primary"></i> My Issued Payslips</h6>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-hrms align-middle mb-0">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Gross Salary</th>
+                  <th>Net Disbursed</th>
+                  <th>Status</th>
+                  <th class="text-end">Print Action</th>
+                </tr>
+              </thead>
+              <tbody id="self-payslip-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- 1. Demo Role Switcher Modal -->
+<div class="modal fade" id="modal-role-switcher" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-sliders me-2 text-primary"></i> Switch Demo Role</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <div class="alert alert-info py-2 small mb-3">
+          <i class="bi bi-info-circle-fill me-1"></i>
+          Select a role to demonstrate different permission tiers during your project viva. No password is required.
+        </div>
+
+        <div class="d-flex flex-column gap-3 mb-3">
+          <!-- Admin Radio -->
+          <label class="p-3 border rounded d-flex align-items-start gap-3" style="cursor: pointer;">
+            <input type="radio" name="demoRole" value="admin" class="mt-1" checked onchange="App.selectRoleOption('admin')">
+            <div>
+              <div class="fw-bold text-dark">System Administrator (Full Access)</div>
+              <div class="text-muted small">Can manage all employees, departments, payroll batches, leave approvals, and system settings.</div>
+            </div>
+          </label>
+
+          <!-- HR Manager Radio -->
+          <label class="p-3 border rounded d-flex align-items-start gap-3" style="cursor: pointer;">
+            <input type="radio" name="demoRole" value="hr_manager" class="mt-1" onchange="App.selectRoleOption('hr_manager')">
+            <div>
+              <div class="fw-bold text-dark">HR Manager (Anita Verma)</div>
+              <div class="text-muted small">Manage staff, record attendance, approve/reject leave requests, and run payroll.</div>
+            </div>
+          </label>
+
+          <!-- Employee Radio -->
+          <label class="p-3 border rounded d-flex align-items-start gap-3" style="cursor: pointer;">
+            <input type="radio" name="demoRole" value="employee" class="mt-1" onchange="App.selectRoleOption('employee')">
+            <div>
+              <div class="fw-bold text-dark">Employee Self-Service</div>
+              <div class="text-muted small">Access personal profile, mark personal attendance, apply for leave, and view personal payslips.</div>
+            </div>
+          </label>
+        </div>
+
+        <!-- Employee Picker Container (Visible when Employee radio selected) -->
+        <div id="demo-employee-picker-container" class="mt-3 p-3 bg-light rounded border d-none">
+          <label class="form-label fw-semibold small text-dark mb-1">Select Employee Profile:</label>
+          <select id="demo-select-employee" class="form-select form-select-sm">
+            <!-- Dynamically populated -->
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer border-top">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm px-3" onclick="App.applySelectedRole()">Apply & Switch Role</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Add / Edit Employee Modal -->
+<div class="modal fade" id="modal-employee-form" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark" id="emp-modal-title">Add New Employee</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="form-employee">
+        <div class="modal-body p-4">
+          <input type="hidden" id="emp-form-id">
+          
+          <h6 class="fw-bold text-primary small text-uppercase mb-3">1. Personal Information</h6>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">First Name *</label>
+              <input type="text" id="emp-form-fn" class="form-control" required placeholder="e.g. Rahul">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Last Name *</label>
+              <input type="text" id="emp-form-ln" class="form-control" required placeholder="e.g. Sharma">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Email Address *</label>
+              <input type="email" id="emp-form-email" class="form-control" required placeholder="name@company.com">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Phone Number</label>
+              <input type="text" id="emp-form-phone" class="form-control" placeholder="+91 98000 00000">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Gender</label>
+              <select id="emp-form-gender" class="form-select">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Employment Status</label>
+              <select id="emp-form-status" class="form-select">
+                <option value="Active">Active</option>
+                <option value="On Leave">On Leave</option>
+                <option value="Terminated">Terminated</option>
+              </select>
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-primary small text-uppercase mb-3 pt-2 border-top">2. Role & Department</h6>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Department</label>
+              <select id="emp-form-dept" class="form-select">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Designation *</label>
+              <input type="text" id="emp-form-desig" class="form-control" required placeholder="e.g. Senior Software Engineer">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Joining Date *</label>
+              <input type="date" id="emp-form-date" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Residential Address</label>
+              <input type="text" id="emp-form-addr" class="form-control" placeholder="City, State">
+            </div>
+          </div>
+
+          <h6 class="fw-bold text-primary small text-uppercase mb-3 pt-2 border-top">3. Monthly Salary Structure (INR ₹)</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Basic Salary *</label>
+              <input type="number" id="emp-form-basic" class="form-control" required placeholder="e.g. 60000">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">HRA (House Rent Allow.)</label>
+              <input type="number" id="emp-form-hra" class="form-control" placeholder="Auto 40% if blank">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">DA (Dearness Allow.)</label>
+              <input type="number" id="emp-form-da" class="form-control" placeholder="Auto 20% if blank">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Special Allowances</label>
+              <input type="number" id="emp-form-allow" class="form-control" value="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Standard Deductions</label>
+              <input type="number" id="emp-form-ded" class="form-control" value="0">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm px-4">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 3. View Employee Profile Modal -->
+<div class="modal fade" id="modal-view-employee" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-person-lines-fill text-primary me-2"></i> Employee Profile Record</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Top Summary -->
+        <div class="d-flex align-items-center gap-3 p-3 bg-light rounded mb-4">
+          <div class="avatar-circle bg-primary text-white fw-bold fs-4" style="width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <div>
+            <h5 id="profile-name" class="fw-bold text-dark mb-0">...</h5>
+            <div class="text-muted small">
+              <span id="profile-code" class="badge bg-primary me-2">...</span>
+              <span id="profile-desig" class="fw-semibold">...</span> • 
+              <span id="profile-dept">...</span>
+            </div>
+          </div>
+          <div class="ms-auto text-end">
+            <span id="profile-status" class="badge bg-success">Active</span>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <!-- Details Left -->
+          <div class="col-md-6">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">General Information</h6>
+            <div class="mb-2"><span class="text-muted small">Email:</span> <span id="profile-email" class="fw-semibold text-dark">...</span></div>
+            <div class="mb-2"><span class="text-muted small">Phone:</span> <span id="profile-phone" class="fw-semibold text-dark">...</span></div>
+            <div class="mb-2"><span class="text-muted small">Gender:</span> <span id="profile-gender" class="fw-semibold text-dark">...</span></div>
+            <div class="mb-2"><span class="text-muted small">Joining Date:</span> <span id="profile-date" class="fw-semibold text-dark">...</span></div>
+            <div class="mb-2"><span class="text-muted small">Address:</span> <span id="profile-address" class="fw-semibold text-dark">...</span></div>
+
+            <h6 class="fw-bold text-dark border-bottom pb-2 mt-4 mb-3">Attendance Summary</h6>
+            <div class="row g-2 text-center">
+              <div class="col-4">
+                <div class="p-2 border rounded bg-light">
+                  <div class="text-success fw-bold fs-5" id="profile-att-present">0</div>
+                  <div class="text-muted small" style="font-size: 0.7rem;">Present</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 border rounded bg-light">
+                  <div class="text-danger fw-bold fs-5" id="profile-att-absent">0</div>
+                  <div class="text-muted small" style="font-size: 0.7rem;">Absent</div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="p-2 border rounded bg-light">
+                  <div class="text-warning fw-bold fs-5" id="profile-att-half">0</div>
+                  <div class="text-muted small" style="font-size: 0.7rem;">Half-Day</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Salary Structure Right -->
+          <div class="col-md-6">
+            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Salary Structure</h6>
+            <div class="p-3 bg-light rounded">
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">Basic Salary:</span>
+                <span id="profile-basic" class="fw-semibold">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">HRA Allowance:</span>
+                <span id="profile-hra" class="fw-semibold">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">DA Allowance:</span>
+                <span id="profile-da" class="fw-semibold">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="text-muted small">Special Allowances:</span>
+                <span id="profile-allow" class="fw-semibold">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between pt-2 border-top mb-2">
+                <span class="fw-bold text-dark">Gross Monthly Salary:</span>
+                <span id="profile-gross" class="fw-bold text-primary">₹0</span>
+              </div>
+              <div class="d-flex justify-content-between pt-2 border-top">
+                <span class="fw-bold text-dark">Estimated Net Take-Home:</span>
+                <span id="profile-net" class="fw-bold text-success">₹0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Add / Edit Department Modal -->
+<div class="modal fade" id="modal-department-form" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark" id="dept-modal-title">Add Department</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="form-department">
+        <div class="modal-body p-4">
+          <input type="hidden" id="dept-form-id">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Department Name *</label>
+            <input type="text" id="dept-form-name" class="form-control" required placeholder="e.g. Research & Innovation">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Department Code *</label>
+            <input type="text" id="dept-form-code" class="form-control" required placeholder="e.g. RND">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Head of Department</label>
+            <input type="text" id="dept-form-head" class="form-control" placeholder="e.g. Dr. Ramesh Kumar">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Annual Budget (₹)</label>
+            <input type="number" id="dept-form-budget" class="form-control" placeholder="250000">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Department Description</label>
+            <textarea id="dept-form-desc" class="form-control" rows="2" placeholder="Brief mission statement..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm px-3">Save Department</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Mark Attendance Modal -->
+<div class="modal fade" id="modal-mark-attendance" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-clock-history text-primary me-2"></i> Record Attendance</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="form-attendance">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Select Employee *</label>
+            <select id="att-form-emp" class="form-select" required>
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Attendance Date *</label>
+            <input type="date" id="att-form-date" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Attendance Status *</label>
+            <select id="att-form-status" class="form-select" required>
+              <option value="Present">Present</option>
+              <option value="Late">Late</option>
+              <option value="Half Day">Half Day</option>
+              <option value="Absent">Absent</option>
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Clock In Time</label>
+              <input type="text" id="att-form-in" class="form-control" placeholder="09:15 AM">
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Clock Out Time</label>
+              <input type="text" id="att-form-out" class="form-control" placeholder="06:00 PM">
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Notes / Remarks</label>
+            <input type="text" id="att-form-notes" class="form-control" placeholder="Optional notes...">
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm px-3">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Apply Leave Modal -->
+<div class="modal fade" id="modal-apply-leave" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-calendar-plus text-primary me-2"></i> Submit Leave Request</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="form-apply-leave">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Employee *</label>
+            <select id="leave-form-emp" class="form-select" required>
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Leave Type *</label>
+            <select id="leave-form-type" class="form-select" required>
+              <option value="Sick Leave">Sick Leave (Medical recovery)</option>
+              <option value="Casual Leave">Casual Leave (Personal errands)</option>
+              <option value="Annual Leave">Annual Leave (Holiday / Vacation)</option>
+              <option value="Maternity / Paternity">Maternity / Paternity</option>
+            </select>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-6">
+              <label class="form-label small fw-semibold">Start Date *</label>
+              <input type="date" id="leave-form-start" class="form-control" required>
+            </div>
+            <div class="col-6">
+              <label class="form-label small fw-semibold">End Date *</label>
+              <input type="date" id="leave-form-end" class="form-control" required>
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Reason for Absence *</label>
+            <textarea id="leave-form-reason" class="form-control" rows="3" required placeholder="Explain purpose of leave..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm px-3">Submit Request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Generate Payroll Modal -->
+<div class="modal fade" id="modal-generate-payroll" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-gear-wide-connected text-primary me-2"></i> Batch Payroll Processor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="form-generate-payroll">
+        <div class="modal-body p-4">
+          <div class="alert alert-primary py-2 small mb-3">
+            <i class="bi bi-info-circle-fill me-1"></i>
+            This will calculate HRA, DA, PF (12%), Income Tax (8%), and Net Salary for all active employees for the chosen month.
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Month & Year *</label>
+            <input type="text" id="payroll-gen-month" class="form-control" required placeholder="e.g. November 2026">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Scheduled Pay Date *</label>
+            <input type="date" id="payroll-gen-date" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary btn-sm px-3">Run Payroll Engine</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 8. Printable Payslip Modal -->
+<div class="modal fade" id="modal-view-payslip" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-bottom">
+        <h5 class="modal-title fw-bold text-dark"><i class="bi bi-file-earmark-text text-primary me-2"></i> Official Salary Payslip</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Printable Payslip Document Card -->
+        <div class="payslip-container shadow-sm border p-4 bg-white">
+          <!-- Company Letterhead Header -->
+          <div class="payslip-header text-center pb-3 mb-4 border-bottom">
+            <h4 id="payslip-company-name" class="fw-bold text-primary mb-1">Apex Global Enterprises Pvt. Ltd.</h4>
+            <div id="payslip-company-addr" class="text-muted small">TechnoPark CyberCity, Building B, Sector 62, India</div>
+            <div class="badge bg-light text-dark border mt-2 px-3 py-1 fw-bold" id="payslip-title">SALARY PAYSLIP</div>
+          </div>
+
+          <!-- Employee & Period Information -->
+          <div class="row g-2 mb-4 p-3 bg-light rounded small">
+            <div class="col-6">
+              <div><span class="text-muted">Employee Name:</span> <strong id="payslip-emp-name" class="text-dark">...</strong></div>
+              <div><span class="text-muted">Employee Code:</span> <strong id="payslip-emp-code" class="text-dark">...</strong></div>
+              <div><span class="text-muted">Designation:</span> <strong id="payslip-emp-desig" class="text-dark">...</strong></div>
+              <div><span class="text-muted">Department:</span> <strong id="payslip-emp-dept" class="text-dark">...</strong></div>
+            </div>
+            <div class="col-6 text-end">
+              <div><span class="text-muted">Pay Date:</span> <strong id="payslip-pay-date" class="text-dark">...</strong></div>
+              <div><span class="text-muted">Joining Date:</span> <strong id="payslip-emp-joining" class="text-dark">...</strong></div>
+              <div><span class="text-muted">Payment Method:</span> <strong id="payslip-pay-method" class="text-dark">Bank Transfer</strong></div>
+              <div><span class="text-muted">Status:</span> <span id="payslip-status-badge" class="badge bg-success">Paid</span></div>
+            </div>
+          </div>
+
+          <!-- Earnings vs Deductions Dual Table -->
+          <div class="row g-3 mb-4">
+            <!-- Earnings Table -->
+            <div class="col-6">
+              <table class="table table-bordered payslip-table mb-0">
+                <thead>
+                  <tr class="table-light">
+                    <th>Earnings Component</th>
+                    <th class="text-end">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Basic Salary</td>
+                    <td id="payslip-basic" class="text-end fw-semibold">₹0</td>
+                  </tr>
+                  <tr>
+                    <td>HRA (House Rent)</td>
+                    <td id="payslip-hra" class="text-end">₹0</td>
+                  </tr>
+                  <tr>
+                    <td>DA (Dearness Allowance)</td>
+                    <td id="payslip-da" class="text-end">₹0</td>
+                  </tr>
+                  <tr>
+                    <td>Special Allowances</td>
+                    <td id="payslip-allow" class="text-end">₹0</td>
+                  </tr>
+                  <tr class="table-light fw-bold">
+                    <td>Total Gross Earnings</td>
+                    <td id="payslip-gross" class="text-end text-primary">₹0</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Deductions Table -->
+            <div class="col-6">
+              <table class="table table-bordered payslip-table mb-0">
+                <thead>
+                  <tr class="table-light">
+                    <th>Deductions Component</th>
+                    <th class="text-end">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Provident Fund (PF - 12%)</td>
+                    <td id="payslip-pf" class="text-end">₹0</td>
+                  </tr>
+                  <tr>
+                    <td>Income Tax (TDS - 8%)</td>
+                    <td id="payslip-tax" class="text-end">₹0</td>
+                  </tr>
+                  <tr>
+                    <td>Other Statutory Deductions</td>
+                    <td id="payslip-other-ded" class="text-end">₹0</td>
+                  </tr>
+                  <tr>
+                    <td class="text-muted">&nbsp;</td>
+                    <td class="text-end">&nbsp;</td>
+                  </tr>
+                  <tr class="table-light fw-bold">
+                    <td>Total Deductions</td>
+                    <td id="payslip-total-ded" class="text-end text-danger">₹0</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Net Disbursed Banner -->
+          <div class="p-3 bg-light rounded d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <span class="text-muted small">NET TAKE-HOME PAYABLE:</span>
+              <div class="text-muted small" style="font-size: 0.72rem;">*Disbursed directly to designated corporate bank salary account</div>
+            </div>
+            <div id="payslip-net-amount" class="fs-4 fw-bold text-success">₹0</div>
+          </div>
+
+          <!-- Signatures Footer -->
+          <div class="row pt-4 mt-3 border-top text-center small text-muted">
+            <div class="col-6">
+              <div class="mb-4">_________________________</div>
+              <div class="fw-semibold text-dark">Employee Signature</div>
+            </div>
+            <div class="col-6">
+              <div class="mb-4">_________________________</div>
+              <div class="fw-semibold text-dark">Authorized HR Officer</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer border-top">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button type="button" class="btn btn-primary btn-sm px-3" onclick="Payroll.printPayslip()">
+          <i class="bi bi-printer me-1"></i> Print / Save PDF
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TOAST CONTAINER ================= -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toast-container" style="z-index: 1100;"></div>
+
+<!-- ================= JAVASCRIPT LIBRARIES ================= -->
+<!-- Chart.js 4.4 -->
+<script src="/vendor/chart.js/chart.umd.js"></script>
+
+<!-- Bootstrap 5.3 JS Bundle -->
+<script src="/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+<!-- Application Modules -->
+<script src="/js/api.js"></script>
+<script src="/js/dashboard.js"></script>
+<script src="/js/employees.js"></script>
+<script src="/js/departments.js"></script>
+<script src="/js/attendance.js"></script>
+<script src="/js/leaves.js"></script>
+<script src="/js/payroll.js"></script>
+<script src="/js/reports.js"></script>
+<script src="/js/selfservice.js"></script>
+<script src="/js/app.js"></script>
+
+</body>
+</html>
